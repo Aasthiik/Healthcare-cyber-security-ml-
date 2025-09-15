@@ -1,0 +1,43 @@
+# Core Flask Dependencies
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Machine Learning Libraries
+scikit-learn==1.3.0
+pandas==2.0.3
+numpy==1.24.3
+joblib==1.3.2
+
+# Advanced ML Libraries
+xgboost==1.7.6
+lightgbm==4.0.0
+
+# Data Visualization
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Database
+//ssqlite3
+
+# Security
+werkzeug[security]==2.3.7
+
+# Web Development
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+click==8.1.7
+
+# Optional: For enhanced functionality
+flask-login==0.6.2
+flask-wtf==1.1.1
+WTForms==3.0.1
+
+# Development Dependencies (optional)
+pytest==7.4.0
+pytest-flask==1.2.0
+black==23.7.0
+flake8==6.0.0
+
+# System Dependencies
+gunicorn==21.2.0  # For production deployment

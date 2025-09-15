@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block title %}Threat Detection - Healthcare Cybersecurity{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="hero-section">
+                <h1 class="display-5 fw-bold text-primary mb-3">
+                    <i class="fas fa-search me-3"></i>
+                    Network Threat Detection
+                </h1>
+                <p class="lead">
+                    Analyze network traffic patterns using advanced machine learning algorithms to detect potential security threats
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Input Form -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Network Traffic Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="predictionForm">
+                        <div class="row">
+                            <!-- Basic Network Features -->
+                            <div class="col-12 mb-4">
+                                <h6 class="fw-bold text-primary border-bottom pb-2">
+                                    <i class="fas fa-network-wired me-2"></i>Basic Network Features
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="duration" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>Connection Duration (seconds)
+                                </label>
+                                <input type="number" class="form-control" name="duration" id="duration" 
+                                       value="0" step="0.01" min="0">
+                                <small class="form-text text-muted">Length of the connection</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="protocol_type" class="form-label">
+                                    <i class="fas fa-layer-group me-1"></i>Protocol Type
+                                </label>
+                                <select class="form-control" name="protocol_type" id="protocol_type">
+                                    <option value="0">TCP</option>
+                                    <option value="1">UDP</option>
+                                    <option value="2">ICMP</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="service" class="form-label">
+                                    <i class="fas fa-server me-1"></i>Network Service
+                                </label>
+                                <select class="form-control" name="service" id="service">
+                                    <option value="0">HTTP</option>
+                                    <option value="1">FTP</option>
+                                    <option value="2">SMTP</option>
+                                    <option value="3">SSH</option>
+                                    <option value="4">Telnet</option>
+                                    <option value="5">Domain</option>
+                                    <option value="6">Private</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="flag" class="form-label">
+                                    <i class="fas fa-flag me-1"></i>Connection Flag
+                                </label>
+                                <select class="form-control" name="flag" id="flag">
+                                    <option value="0">SF (Normal)</option>
+                                    <option value="1">S0 (Connection attempt)</option>
+                                    <option value="2">REJ (Connection rejected)</option>
+                                    <option value="3">RSTR (Connection reset)</option>
+                                    <option value="4">RSTO (Originator reset)</option>
+                                    <option value="5">SH (SYN flood)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Traffic Volume Features -->
+                            <div class="col-12 mb-4 mt-4">
+                                <h6 class="fw-bold text-success border-bottom pb-2">
+                                    <i class="fas fa-exchange-alt me-2"></i>Traffic Volume Features
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="src_bytes" class="form-label">
+                                    <i class="fas fa-upload me-1"></i>Source Bytes
+                                </label>
+                                <input type="number" class="form-control" name="src_bytes" id="src_bytes" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Bytes sent from source to destination</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="dst_bytes" class="form-label">
+                                    <i class="fas fa-download me-1"></i>Destination Bytes
+                                </label>
+                                <input type="number" class="form-control" name="dst_bytes" id="dst_bytes" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Bytes sent from destination to source</small>
+                            </div>
+                            
+                            <!-- Security Features -->
+                            <div class="col-12 mb-4 mt-4">
+                                <h6 class="fw-bold text-warning border-bottom pb-2">
+                                    <i class="fas fa-shield-alt me-2"></i>Security Features
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="land" class="form-label">
+                                    <i class="fas fa-ban me-1"></i>Land Attack
+                                </label>
+                                <select class="form-control" name="land" id="land">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                                <small class="form-text text-muted">Same host and port for source and destination</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="wrong_fragment" class="form-label">
+                                    <i class="fas fa-puzzle-piece me-1"></i>Wrong Fragment
+                                </label>
+                                <input type="number" class="form-control" name="wrong_fragment" id="wrong_fragment" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Number of wrong fragments</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="urgent" class="form-label">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Urgent Packets
+                                </label>
+                                <input type="number" class="form-control" name="urgent" id="urgent" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Number of urgent packets</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="hot" class="form-label">
+                                    <i class="fas fa-fire me-1"></i>Hot Indicators
+                                </label>
+                                <input type="number" class="form-control" name="hot" id="hot" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Number of hot indicators</small>
+                            </div>
+                            
+                            <!-- Authentication Features -->
+                            <div class="col-12 mb-4 mt-4">
+                                <h6 class="fw-bold text-info border-bottom pb-2">
+                                    <i class="fas fa-key me-2"></i>Authentication Features
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="num_failed_logins" class="form-label">
+                                    <i class="fas fa-times-circle me-1"></i>Failed Logins
+                                </label>
+                                <input type="number" class="form-control" name="num_failed_logins" id="num_failed_logins" 
+                                       value="0" min="0">
+                                <small class="form-text text-muted">Number of failed login attempts</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="logged_in" class="form-label">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Successfully Logged In
+                                </label>
+                                <select class="form-control" name="logged_in" id="logged_in">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Quick Preset Buttons -->
+                            <div class="col-12 mt-4">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2">
+                                    <i class="fas fa-magic me-2"></i>Quick Presets
+                                </h6>
+                                <div class="btn-group-toggle" data-toggle="buttons">
+                                    <button type="button" class="btn btn-outline-success me-2 mb-2" onclick="loadPreset('normal')">
+                                        <i class="fas fa-shield-alt me-1"></i>Normal Traffic
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger me-2 mb-2" onclick="loadPreset('dos')">
+                                        <i class="fas fa-bomb me-1"></i>DoS Attack
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning me-2 mb-2" onclick="loadPreset('probe')">
+                                        <i class="fas fa-search me-1"></i>Probe Attack
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info me-2 mb-2" onclick="loadPreset('random')">
+                                        <i class="fas fa-random me-1"></i>Random Values
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Generate hidden fields for remaining features if needed -->
+                        <!-- Only add hidden fields if we have more than the displayed features -->
+                        {% if feature_names|length > 12 %}
+                        {% for feature in feature_names[12:] %}
+                        <input type="hidden" name="{{ feature }}" value="0">
+                        {% endfor %}
+                        {% endif %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" id="analyzeBtn">
+                                <i class="fas fa-search me-2"></i>
+                                <span id="analyzeText">Analyze Threat</span>
+                                <div class="loading d-none" id="analyzeLoading"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Information Panel -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Detection Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold text-primary mb-3">Attack Types We Detect:</h6>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6 class="text-danger mb-2">
+                            <i class="fas fa-bomb me-2"></i>DoS/DDoS Attacks
+                        </h6>
+                        <small class="text-muted">
+                            Denial of Service attacks that overwhelm network resources
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6 class="text-warning mb-2">
+                            <i class="fas fa-search me-2"></i>Probe Attacks
+                        </h6>
+                        <small class="text-muted">
+                            Reconnaissance attacks scanning for vulnerabilities
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6 class="text-info mb-2">
+                            <i class="fas fa-arrow-right me-2"></i>R2L Attacks
+                        </h6>
+                        <small class="text-muted">
+                            Remote-to-Local unauthorized access attempts
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6 class="text-purple mb-2">
+                            <i class="fas fa-user-cog me-2"></i>U2R Attacks
+                        </h6>
+                        <small class="text-muted">
+                            User-to-Root privilege escalation attacks
+                        </small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="fw-bold text-success mb-3">
+                        <i class="fas fa-chart-line me-2"></i>Model Performance
+                    </h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>99.8%</strong> Accuracy Rate
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>&lt;100ms</strong> Response Time
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Low</strong> False Positive Rate
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>8+</strong> ML Algorithms
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-primary mt-4">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Use the preset buttons for quick testing with common attack patterns.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Preset data configurations
+const presets = {
+    normal: {
+        duration: 10,
+        protocol_type: 0,
+        service: 0,
+        flag: 0,
+        src_bytes: 1024,
+        dst_bytes: 512,
+        land: 0,
+        wrong_fragment: 0,
+        urgent: 0,
+        hot: 0,
+        num_failed_logins: 0,
+        logged_in: 1
+    },
+    dos: {
+        duration: 0,
+        protocol_type: 0,
+        service: 0,
+        flag: 1,
+        src_bytes: 0,
+        dst_bytes: 0,
+        land: 0,
+        wrong_fragment: 0,
+        urgent: 0,
+        hot: 0,
+        num_failed_logins: 0,
+        logged_in: 0
+    },
+    probe: {
+        duration: 0,
+        protocol_type: 0,
+        service: 6,
+        flag: 2,
+        src_bytes: 0,
+        dst_bytes: 0,
+        land: 0,
+        wrong_fragment: 0,
+        urgent: 0,
+        hot: 0,
+        num_failed_logins: 0,
+        logged_in: 0
+    }
+};
+
+function loadPreset(type) {
+    if (type === 'random') {
+        // Generate random values
+        document.getElementById('duration').value = Math.floor(Math.random() * 100);
+        document.getElementById('protocol_type').value = Math.floor(Math.random() * 3);
+        document.getElementById('service').value = Math.floor(Math.random() * 7);
+        document.getElementById('flag').value = Math.floor(Math.random() * 6);
+        document.getElementById('src_bytes').value = Math.floor(Math.random() * 10000);
+        document.getElementById('dst_bytes').value = Math.floor(Math.random() * 10000);
+        document.getElementById('land').value = Math.floor(Math.random() * 2);
+        document.getElementById('wrong_fragment').value = Math.floor(Math.random() * 5);
+        document.getElementById('urgent').value = Math.floor(Math.random() * 5);
+        document.getElementById('hot').value = Math.floor(Math.random() * 10);
+        document.getElementById('num_failed_logins').value = Math.floor(Math.random() * 5);
+        document.getElementById('logged_in').value = Math.floor(Math.random() * 2);
+    } else {
+        const preset = presets[type];
+        if (preset) {
+            Object.keys(preset).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = preset[key];
+                }
+            });
+        }
+    }
+    
+    // Add visual feedback
+    const form = document.getElementById('predictionForm');
+    form.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+        form.style.transform = 'scale(1)';
+    }, 100);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('predictionForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeText = document.getElementById('analyzeText');
+    const analyzeLoading = document.getElementById('analyzeLoading');
+    
+    // Form submission handling
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        analyzeText.classList.add('d-none');
+        analyzeLoading.classList.remove('d-none');
+        analyzeBtn.disabled = true;
+        
+        // Reset loading state after a delay (in case of error)
+        setTimeout(() => {
+            analyzeText.classList.remove('d-none');
+            analyzeLoading.classList.add('d-none');
+            analyzeBtn.disabled = false;
+        }, 5000);
+    });
+    
+    // Input validation and styling
+    const inputs = document.querySelectorAll('input[type="number"]');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+            
+            // Add visual feedback for valid input
+            this.style.borderColor = '#28a745';
+            setTimeout(() => {
+                this.style.borderColor = '';
+            }, 1000);
+        });
+    });
+    
+    // Animate form sections on scroll
+    const sections = document.querySelectorAll('h6.fw-bold');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateX(0)';
+            }
+        });
+    });
+    
+    sections.forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateX(-20px)';
+        section.style.transition = 'all 0.6s ease';
+        observer.observe(section);
+    });
+});
+</script>
+{% endblock %}

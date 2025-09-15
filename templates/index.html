@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Healthcare Cybersecurity - AI-Powered Intrusion Detection{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-title">
+            <i class="fas fa-shield-alt text-primary me-3"></i>
+            Healthcare Cybersecurity
+        </div>
+        <div class="hero-subtitle">
+            Advanced Machine Learning-based Intrusion Detection System
+        </div>
+        <p class="lead mb-4">
+            Protect your healthcare network infrastructure with our state-of-the-art AI system that detects 
+            brute-force attacks, DDoS, SQL injection, OS scans, and more with 99%+ accuracy.
+        </p>
+        
+        {% if not session.user_id %}
+        <div class="mb-4">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-rocket me-2"></i>Get Started
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+        </div>
+        {% else %}
+        <div class="mb-4">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </a>
+            <a href="{{ url_for('predict') }}" class="btn btn-success btn-lg">
+                <i class="fas fa-search me-2"></i>Detect Threats
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="display-5 fw-bold text-primary mb-3">
+                <i class="fas fa-cogs me-3"></i>
+                Advanced Security Features
+            </h2>
+            <p class="lead text-muted">
+                Comprehensive protection powered by cutting-edge machine learning algorithms
+            </p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4 class="fw-bold text-primary mb-3">AI-Powered Detection</h4>
+                <p class="text-muted">
+                    Advanced ensemble methods combining Random Forest, XGBoost, and Neural Networks 
+                    for maximum accuracy in threat detection.
+                </p>
+                <ul class="list-unstyled text-start">
+                    <li><i class="fas fa-check text-success me-2"></i>99%+ Accuracy Rate</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Real-time Analysis</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Low False Positives</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h4 class="fw-bold text-primary mb-3">Multi-Attack Detection</h4>
+                <p class="text-muted">
+                    Comprehensive detection of various attack types targeting healthcare systems 
+                    and network infrastructure.
+                </p>
+                <ul class="list-unstyled text-start">
+                    <li><i class="fas fa-shield-alt text-warning me-2"></i>DoS/DDoS Attacks</li>
+                    <li><i class="fas fa-shield-alt text-warning me-2"></i>Probe Attacks</li>
+                    <li><i class="fas fa-shield-alt text-warning me-2"></i>Remote-to-Local (R2L)</li>
+                    <li><i class="fas fa-shield-alt text-warning me-2"></i>User-to-Root (U2R)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4 class="fw-bold text-primary mb-3">Analytics Dashboard</h4>
+                <p class="text-muted">
+                    Comprehensive analytics and visualization tools to monitor network security 
+                    trends and attack patterns.
+                </p>
+                <ul class="list-unstyled text-start">
+                    <li><i class="fas fa-chart-bar text-info me-2"></i>Real-time Monitoring</li>
+                    <li><i class="fas fa-chart-pie text-info me-2"></i>Threat Analytics</li>
+                    <li><i class="fas fa-history text-info me-2"></i>Historical Data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h2 class="display-6 fw-bold text-primary mb-3">
+                <i class="fas fa-trophy me-3"></i>
+                Performance Metrics
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card text-center">
+                <span class="stats-number">99.8%</span>
+                <div class="mt-2">
+                    <i class="fas fa-bullseye me-2"></i>
+                    Accuracy Rate
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card text-center">
+                <span class="stats-number">5+</span>
+                <div class="mt-2">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Attack Types Detected
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card text-center">
+                <span class="stats-number">&lt;100ms</span>
+                <div class="mt-2">
+                    <i class="fas fa-clock me-2"></i>
+                    Response Time
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stats-card text-center">
+                <span class="stats-number">8+</span>
+                <div class="mt-2">
+                    <i class="fas fa-robot me-2"></i>
+                    ML Algorithms
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Technology Stack -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h2 class="display-6 fw-bold text-primary mb-3">
+                <i class="fas fa-code me-3"></i>
+                Technology Stack
+            </h2>
+            <p class="lead text-muted">Built with cutting-edge technologies and frameworks</p>
+        </div>
+    </div>
+    
+    <div class="row text-center">
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fab fa-python text-warning" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">Python</h6>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fas fa-flask text-success" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">Flask</h6>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fas fa-brain text-info" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">Scikit-Learn</h6>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fas fa-chart-bar text-primary" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">Pandas</h6>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fab fa-html5 text-danger" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">HTML5</h6>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-4">
+            <div class="card p-3">
+                <i class="fab fa-bootstrap text-purple" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 fw-bold">Bootstrap</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+{% if not session.user_id %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-gradient text-white p-5 text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h2 class="display-6 fw-bold mb-3">
+                    <i class="fas fa-rocket me-3"></i>
+                    Ready to Secure Your Network?
+                </h2>
+                <p class="lead mb-4">
+                    Join thousands of healthcare organizations protecting their infrastructure with our AI-powered security solution.
+                </p>
+                <div>
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add some interactive animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats numbers
+        const statsNumbers = document.querySelectorAll('.stats-number');
+        
+        const animateValue = (element, start, end, duration) => {
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    element.textContent = element.textContent.replace(/[\d.]+/, end);
+                    clearInterval(timer);
+                } else {
+                    element.textContent = element.textContent.replace(/[\d.]+/, Math.floor(current * 10) / 10);
+                }
+            }, 16);
+        };
+        
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+        
+        // Observe feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Healthcare Cybersecurity{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-shield-alt text-primary" style="font-size: 4rem;"></i>
+                        <h2 class="mt-3 fw-bold text-primary">Welcome Back</h2>
+                        <p class="text-muted">Sign in to access your security dashboard</p>
+                    </div>
+                    
+                    <form method="POST" id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-bold">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username" 
+                                   name="username" 
+                                   required
+                                   placeholder="Enter your username">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-bold">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       required
+                                       placeholder="Enter your password">
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                <span id="loginText">Sign In</span>
+                                <div class="loading d-none" id="loginLoading"></div>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Don't have an account? 
+                            <a href="{{ url_for('register') }}" class="text-primary fw-bold">
+                                Create one here
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <!-- Demo Account Info -->
+                    <div class="alert alert-info mt-4" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Demo Account:</strong><br>
+                        Username: demo<br>
+                        Password: demo123
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Features -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="text-center p-3">
+                        <i class="fas fa-lock text-success" style="font-size: 2rem;"></i>
+                        <h6 class="mt-2 fw-bold">Secure Login</h6>
+                        <small class="text-muted">256-bit SSL encryption</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center p-3">
+                        <i class="fas fa-database text-info" style="font-size: 2rem;"></i>
+                        <h6 class="mt-2 fw-bold">Data Protection</h6>
+                        <small class="text-muted">Encrypted data storage</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginText = document.getElementById('loginText');
+    const loginLoading = document.getElementById('loginLoading');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('password');
+    
+    // Password toggle functionality
+    togglePassword.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        if (type === 'password') {
+            icon.className = 'fas fa-eye';
+        } else {
+            icon.className = 'fas fa-eye-slash';
+        }
+    });
+    
+    // Form submission with loading state
+    loginForm.addEventListener('submit', function(e) {
+        // Show loading state
+        loginText.classList.add('d-none');
+        loginLoading.classList.remove('d-none');
+        loginBtn.disabled = true;
+        
+        // In a real app, you might want to prevent the form submission
+        // to handle it with AJAX, but for this demo we'll let it submit normally
+        
+        // Reset loading state after a delay (in case of error)
+        setTimeout(() => {
+            loginText.classList.remove('d-none');
+            loginLoading.classList.add('d-none');
+            loginBtn.disabled = false;
+        }, 3000);
+    });
+    
+    // Input validation
+    const inputs = document.querySelectorAll('input[required]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') && this.value.trim()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+    
+    // Animate card entrance
+    const card = document.querySelector('.card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    card.style.transition = 'all 0.6s ease';
+    
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

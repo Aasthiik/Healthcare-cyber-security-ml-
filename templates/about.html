@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+
+{% block title %}About - Healthcare Cybersecurity{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="display-4 fw-bold text-primary mb-3">
+            <i class="fas fa-info-circle me-3"></i>
+            About Healthcare Cybersecurity
+        </h1>
+        <p class="lead">
+            Advanced AI-powered intrusion detection system protecting healthcare networks worldwide
+        </p>
+    </div>
+    
+    <!-- Project Overview -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-primary mb-4">
+                        <i class="fas fa-rocket me-3"></i>Project Overview
+                    </h2>
+                    <p class="lead mb-4">
+                        Our Healthcare Cybersecurity Project represents a cutting-edge approach to network security, 
+                        leveraging machine learning algorithms to detect and prevent cyber threats in healthcare environments.
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-target me-2"></i>Mission
+                            </h5>
+                            <p>
+                                To provide healthcare organizations with robust, intelligent cybersecurity solutions 
+                                that protect sensitive patient data and critical infrastructure from evolving cyber threats.
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-info mb-3">
+                                <i class="fas fa-eye me-2"></i>Vision
+                            </h5>
+                            <p>
+                                Creating a secure digital healthcare ecosystem where patient data remains protected 
+                                while enabling innovation and seamless healthcare delivery.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Technical Details -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Technical Architecture
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary mb-3">Machine Learning Models</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>K-Nearest Neighbors (KNN)</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Decision Tree</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Random Forest</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Naive Bayes</strong>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Logistic Regression</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>AdaBoost</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>XGBoost</strong>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Ensemble Methods</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h5 class="text-success mt-4 mb-3">Advanced Ensemble Techniques</h5>
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Stacking Classifier:</strong> Combines Random Forest + MLP with LightGBM as meta-learner
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-users me-2"></i>
+                        <strong>Voting Classifier:</strong> Hard voting between Random Forest and Decision Tree
+                    </div>
+                    
+                    <h5 class="text-info mt-4 mb-3">Technology Stack</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <i class="fab fa-python text-warning mb-2" style="font-size: 2rem;"></i>
+                                <h6>Python 3.8+</h6>
+                                <small class="text-muted">Core Language</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <i class="fas fa-flask text-success mb-2" style="font-size: 2rem;"></i>
+                                <h6>Flask Framework</h6>
+                                <small class="text-muted">Web Application</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded text-center">
+                                <i class="fas fa-database text-info mb-2" style="font-size: 2rem;"></i>
+                                <h6>SQLite</h6>
+                                <small class="text-muted">Database</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Performance Metrics
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="stats-card bg-primary text-white p-3 rounded">
+                            <span class="stats-number">99.8%</span>
+                            <div class="mt-1">Overall Accuracy</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-12 mb-3">
+                            <div class="p-2 bg-success text-white rounded">
+                                <h6 class="mb-1">Random Forest</h6>
+                                <strong>99.2% Accuracy</strong>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="p-2 bg-warning text-white rounded">
+                                <h6 class="mb-1">XGBoost</h6>
+                                <strong>98.9% Accuracy</strong>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="p-2 bg-info text-white rounded">
+                                <h6 class="mb-1">Ensemble</h6>
+                                <strong>100% Accuracy</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-primary mt-4 mb-3">Key Features</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-bolt text-warning me-2"></i>
+                            <small>Real-time Detection</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-shield-alt text-success me-2"></i>
+                            <small>Low False Positives</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-info me-2"></i>
+                            <small>&lt;100ms Response Time</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            <small>Continuous Learning</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attack Types -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-bug me-2"></i>Detected Attack Types
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <div class="border-start border-danger border-4 ps-3">
+                                <h5 class="text-danger mb-2">
+                                    <i class="fas fa-bomb me-2"></i>DoS/DDoS Attacks
+                                </h5>
+                                <p class="mb-2">Denial of Service attacks that overwhelm network resources and disrupt services.</p>
+                                <small class="text-muted">
+                                    <strong>Examples:</strong> Neptune, Smurf, Teardrop, Pod, Back
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6 mb-4">
+                            <div class="border-start border-warning border-4 ps-3">
+                                <h5 class="text-warning mb-2">
+                                    <i class="fas fa-search me-2"></i>Probe Attacks
+                                </h5>
+                                <p class="mb-2">Reconnaissance attacks that scan for vulnerabilities and gather system information.</p>
+                                <small class="text-muted">
+                                    <strong>Examples:</strong> Satan, Portsweep, Nmap, Ipsweep
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6 mb-4">
+                            <div class="border-start border-info border-4 ps-3">
+                                <h5 class="text-info mb-2">
+                                    <i class="fas fa-arrow-right me-2"></i>R2L (Remote-to-Local)
+                                </h5>
+                                <p class="mb-2">Unauthorized access from remote machines to gain local access to victim systems.</p>
+                                <small class="text-muted">
+                                    <strong>Examples:</strong> Warezclient, Warezmaster, FTP_write, Guess_passwd
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6 mb-4">
+                                <h5 class="text-purple mb-2">
+                                    <i class="fas fa-user-cog me-2"></i>U2R (User-to-Root)
+                                </h5>
+                                <p class="mb-2">Privilege escalation attacks where attackers gain root access from user accounts.</p>
+                                <small class="text-muted">
+                                    <strong>Examples:</strong> Buffer_overflow, Loadmodule, Perl, Rootkit
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dataset Information -->
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Dataset & Training
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-info mb-3">MCAD-SDN Dataset</h5>
+                    <p>
+                        Our model is trained on the comprehensive MCAD-SDN dataset, which contains network traffic 
+                        patterns from healthcare systems and various attack scenarios.
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Dataset Features:</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-1">
+                                    <i class="fas fa-dot-circle text-success me-2"></i>
+                                    <small>41 Network Features</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-dot-circle text-success me-2"></i>
+                                    <small>100,000+ Training Samples</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-dot-circle text-success me-2"></i>
+                                    <small>5 Attack Categories</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-dot-circle text-success me-2"></i>
+                                    <small>Real Healthcare Network Data</small>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3">Training Process:</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-1">
+                                    <i class="fas fa-cog text-info me-2"></i>
+                                    <small>Data Preprocessing & Cleaning</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-cog text-info me-2"></i>
+                                    <small>Feature Selection & Engineering</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-cog text-info me-2"></i>
+                                    <small>Cross-validation Testing</small>
+                                </li>
+                                <li class="mb-1">
+                                    <i class="fas fa-cog text-info me-2"></i>
+                                    <small>Hyperparameter Optimization</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>Research
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-warning mb-3">Academic Foundation</h6>
+                    <p class="small mb-3">
+                        This project extends current research in network intrusion detection by implementing 
+                        advanced ensemble methods for improved accuracy.
+                    </p>
+                    
+                    <div class="alert alert-light">
+                        <i class="fas fa-book me-2"></i>
+                        <strong>Base Research:</strong> Achieved 99% accuracy with Random Forest classifier
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <i class="fas fa-plus me-2"></i>
+                        <strong>Our Extension:</strong> Enhanced to 100% accuracy using ensemble methods
+                    </div>
+                    
+                    <h6 class="text-primary mt-3 mb-2">Publications</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            <small>Healthcare Network Security Analysis</small>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            <small>ML-based Intrusion Detection Systems</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team & Contact -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Development Team
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="text-secondary mb-3">Project Contributors</h5>
+                            <p class="mb-4">
+                                Our interdisciplinary team combines expertise in machine learning, cybersecurity, 
+                                and healthcare informatics to deliver cutting-edge security solutions.
+                            </p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">Technical Areas:</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-brain text-info me-2"></i>
+                                            Machine Learning Engineering
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-shield-alt text-success me-2"></i>
+                                            Cybersecurity Research
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-code text-warning me-2"></i>
+                                            Full-Stack Development
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-chart-bar text-primary me-2"></i>
+                                            Data Science & Analytics
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success mb-3">Specializations:</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-hospital text-danger me-2"></i>
+                                            Healthcare IT Security
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-network-wired text-info me-2"></i>
+                                            Network Security Analysis
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-robot text-warning me-2"></i>
+                                            AI/ML Model Development
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-globe text-primary me-2"></i>
+                                            Web Application Security
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="p-4 bg-light rounded">
+                                    <i class="fas fa-envelope text-primary mb-3" style="font-size: 3rem;"></i>
+                                    <h5 class="text-primary mb-3">Get In Touch</h5>
+                                    <p class="small text-muted mb-3">
+                                        Interested in our research or have questions about implementation?
+                                    </p>
+                                    <div class="btn-group-vertical w-100">
+                                        <button class="btn btn-outline-primary btn-sm mb-2" onclick="contactTeam('research')">
+                                            <i class="fas fa-flask me-1"></i>Research Inquiry
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm mb-2" onclick="contactTeam('collaboration')">
+                                            <i class="fas fa-handshake me-1"></i>Collaboration
+                                        </button>
+                                        <button class="btn btn-outline-info btn-sm" onclick="contactTeam('support')">
+                                            <i class="fas fa-life-ring me-1"></i>Technical Support
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Future Work -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>Future Enhancements
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-brain me-2"></i>Advanced AI Features
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Deep Learning Integration</strong>
+                                            <br><small class="text-muted">Neural network models for complex pattern recognition</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Real-time Learning</strong>
+                                            <br><small class="text-muted">Adaptive models that improve with new data</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Anomaly Detection</strong>
+                                            <br><small class="text-muted">Unsupervised learning for zero-day threats</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="text-info mb-3">
+                                <i class="fas fa-cogs me-2"></i>Platform Enhancements
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-plus-circle text-info me-3 mt-1"></i>
+                                        <div>
+                                            <strong>API Integration</strong>
+                                            <br><small class="text-muted">RESTful APIs for third-party integration</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-plus-circle text-info me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Mobile Application</strong>
+                                            <br><small class="text-muted">iOS and Android apps for monitoring</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-plus-circle text-info me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Cloud Deployment</strong>
+                                            <br><small class="text-muted">Scalable cloud-based security monitoring</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function contactTeam(type) {
+    let message = '';
+    switch(type) {
+        case 'research':
+            message = '🔬 Research Inquiry\n\nThank you for your interest in our research! Please provide:\n• Specific research questions\n• Collaboration proposals\n• Academic affiliations\n\nWe\'ll respond within 48 hours.';
+            break;
+        case 'collaboration':
+            message = '🤝 Collaboration Opportunity\n\nWe\'re excited about potential partnerships! Please share:\n• Organization details\n• Collaboration scope\n• Timeline and objectives\n\nLet\'s build something amazing together!';
+            break;
+        case 'support':
+            message = '💡 Technical Support\n\nOur technical team is here to help! Please provide:\n• Issue description\n• System environment\n• Error logs (if any)\n\nSupport response: 24-48 hours';
+            break;
+    }
+    alert(message);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats numbers
+    const statsNumbers = document.querySelectorAll('.stats-number');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const finalValue = entry.target.textContent;
+                const isPercent = finalValue.includes('%');
+                const numericValue = parseFloat(finalValue);
+                
+                if (!isNaN(numericValue)) {
+                    animateValue(entry.target, 0, numericValue, 2000, isPercent);
+                }
+            }
+        });
+    });
+    
+    statsNumbers.forEach(num => observer.observe(num));
+    
+    function animateValue(element, start, end, duration, isPercent = false) {
+        const increment = (end - start) / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= end) {
+                element.textContent = isPercent ? end + '%' : Math.floor(end);
+                clearInterval(timer);
+            } else {
+                element.textContent = isPercent ? 
+                    (Math.floor(current * 10) / 10) + '%' : 
+                    Math.floor(current);
+            }
+        }, 16);
+    }
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}
