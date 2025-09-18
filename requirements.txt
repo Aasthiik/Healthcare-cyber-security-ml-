@@ -17,7 +17,7 @@ matplotlib==3.7.2
 seaborn==0.12.2
 
 # Database
-//ssqlite3
+# sqlite3 (built-in with Python)
 
 # Security
 werkzeug[security]==2.3.7
