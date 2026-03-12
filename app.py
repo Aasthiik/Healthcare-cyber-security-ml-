@@ -8,9 +8,18 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import threading
 import time
-from live_packet_features import LivePacketFeatureExtractor, FEATURE_NAMES
+# Import live packet features lazily inside the background thread to avoid
+# importing `pyshark` at module import time (which can block or fail).
 from app.security.threat_response import threat_engine
-from app.security.advanced_atr import enhanced_atr_engine
+# Lazy import/initialization for Enhanced ATR Engine to avoid import-time side effects
+_enhanced_atr_engine = None
+def get_enhanced_atr_engine():
+    global _enhanced_atr_engine
+    if _enhanced_atr_engine is None:
+        from app.security.advanced_atr import EnhancedThreatResponseEngine
+        _enhanced_atr_engine = EnhancedThreatResponseEngine()
+    return _enhanced_atr_engine
+import sys
 
 # Attack types mapping - using threat engine constants
 ATTACK_TYPES = {
@@ -28,9 +37,7 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import threading
 import time
-from live_packet_features import LivePacketFeatureExtractor, FEATURE_NAMES
 from app.security.threat_response import threat_engine
-from app.security.advanced_atr import enhanced_atr_engine
 
 
 app = Flask(__name__)
@@ -40,7 +47,14 @@ app.permanent_session_lifetime = 3600  # 1 hour
 
 # Database setup
 def init_db():
-    conn = sqlite3.connect('users.db')
+    # Use a reasonable timeout and enable WAL to reduce locking issues under concurrency
+    conn = sqlite3.connect('users.db', timeout=30)
+    try:
+        # Enable WAL journal mode for better concurrency
+        conn.execute('PRAGMA journal_mode=WAL;')
+        conn.execute('PRAGMA synchronous=NORMAL;')
+    except Exception:
+        pass
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,6 +109,44 @@ feature_names = None
 scaler = None
 label_encoders = None
 
+# Lazy-load ML artifacts to avoid import-time pickle issues
+def load_model_artifacts():
+    global model, feature_names, scaler, label_encoders
+    if model is not None:
+        return True
+    try:
+        # Allow forcing subprocess-only prediction to avoid in-process unpickle
+        if os.environ.get('FORCE_SUBPROCESS_PREDICT', '0').lower() in ('1', 'true'):
+            print('FORCE_SUBPROCESS_PREDICT active; skipping in-process artifact load')
+            return False
+        import joblib
+        import numpy as _np
+        # attempt alias for private numpy modules used in old pickles
+        try:
+            sys.modules.setdefault('numpy._core', _np.core)
+        except Exception:
+            pass
+
+        model = joblib.load('model.sav')
+        try:
+            feature_names = joblib.load('feature_names.sav')
+        except Exception:
+            feature_names = []
+        try:
+            scaler = joblib.load('scaler.sav')
+        except Exception:
+            scaler = None
+        try:
+            label_encoders = joblib.load('label_encoders.sav')
+        except Exception:
+            label_encoders = None
+        print('Model and artifacts loaded')
+        return True
+    except Exception as e:
+        print(f'Error loading model artifacts: {e}')
+        model = None
+        return False
+
 # Helper function for session validation
 def requires_login():
     """Check if user is properly logged in"""
@@ -102,54 +154,8 @@ def requires_login():
             'username' in session and 
             session.get('logged_in', False) == True)
 
-try:
-    model = joblib.load('model.sav')
-    print("Model loaded successfully!")
-    
-    # Load the correct feature names that match the trained model
-    try:
-        feature_names = joblib.load('feature_names.sav')
-        print(f"Feature names loaded successfully! Model expects {len(feature_names)} features")
-        print(f"Features: {feature_names[:5]}...")
-    except FileNotFoundError:
-        print("Warning: feature_names.sav not found. Using fallback feature names.")
-        # Fallback feature names if file doesn't exist
-        feature_names = [
-            'duration', 'protocol_type', 'service', 'flag', 'src_bytes',
-            'dst_bytes', 'land', 'wrong_fragment', 'urgent', 'hot',
-            'num_failed_logins', 'logged_in', 'num_compromised', 'root_shell',
-            'su_attempted', 'num_root', 'num_file_creations', 'num_shells',
-            'num_access_files', 'num_outbound_cmds', 'is_host_login',
-            'is_guest_login', 'count', 'srv_count', 'serror_rate',
-            'srv_serror_rate', 'rerror_rate', 'srv_rerror_rate',
-            'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate',
-            'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate',
-            'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
-            'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
-            'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
-            'dst_host_srv_rerror_rate'
-        ]
-        
-    try:
-        scaler = joblib.load('scaler.sav')
-        print("Scaler loaded successfully!")
-    except FileNotFoundError:
-        print("Warning: scaler.sav not found. Will skip scaling.")
-        scaler = None
-        
-    try:
-        label_encoders = joblib.load('label_encoders.sav')
-        print("Label encoders loaded successfully!")
-    except FileNotFoundError:
-        print("Warning: label_encoders.sav not found. Will use default encoding.")
-        label_encoders = None
-        
-except Exception as e:
-    print(f"Error loading model: {e}")
-    model = None
-    feature_names = []
-    scaler = None
-    label_encoders = None
+# Defer loading of ML artifacts until runtime to avoid import-time pickle errors
+print('Model artifact loading deferred until runtime')
 
 # Attack types mapping - using threat engine constants
 ATTACK_TYPES = {
@@ -177,17 +183,31 @@ def register():
         
         hashed_password = generate_password_hash(password)
         
+        # Try inserting with retries to avoid transient 'database is locked' errors
         try:
-            conn = sqlite3.connect('users.db')
+            conn = sqlite3.connect('users.db', timeout=30)
             c = conn.cursor()
-            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-                     (username, email, hashed_password))
-            conn.commit()
+            for attempt in range(5):
+                try:
+                    c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+                             (username, email, hashed_password))
+                    conn.commit()
+                    break
+                except sqlite3.OperationalError as e:
+                    # Retry on database lock
+                    if 'locked' in str(e).lower() and attempt < 4:
+                        time.sleep(0.2 * (attempt + 1))
+                        continue
+                    raise
             conn.close()
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists!', 'error')
+            return render_template('register.html')
+        except sqlite3.OperationalError as e:
+            print(f"Database operational error during register: {e}")
+            flash('Database busy. Please try again shortly.', 'error')
             return render_template('register.html')
     
     return render_template('register.html')
@@ -276,20 +296,25 @@ def predict():
     
     if request.method == 'POST':
         try:
-            # Validate model availability
+            # Ensure model artifacts are loaded (lazy)
             if model is None:
-                flash('Model not available. Please train the model first.', 'error')
-                return render_template('predict.html', feature_names=feature_names or [], threat_engine=threat_engine)
-            
-            if not feature_names:
-                flash('Feature names not available. Please check model files.', 'error')
-                return render_template('predict.html', feature_names=[], threat_engine=threat_engine)
-            
+                load_model_artifacts()
+
+            # We attempt to load artifacts but don't abort if loading fails —
+            # prediction can be delegated to a subprocess to avoid C-extension unpickle issues.
             # Collect and process input features
             features = []
             feature_dict = {}
-            expected_count = getattr(model, 'n_features_in_', len(feature_names))
-            effective_feature_names = feature_names[:expected_count] if len(feature_names) > expected_count else feature_names
+
+            # Determine which feature names to use. If feature_names aren't available
+            # (e.g., model failed to load), fall back to the incoming form field order.
+            if feature_names:
+                expected_count = getattr(model, 'n_features_in_', len(feature_names))
+                effective_feature_names = feature_names[:expected_count] if len(feature_names) > expected_count else feature_names
+            else:
+                # fall back to form keys order
+                effective_feature_names = list(request.form.keys())
+                expected_count = len(effective_feature_names)
             
             # Process each feature
             for feature_name in effective_feature_names:
@@ -326,13 +351,44 @@ def predict():
             if scaler is not None:
                 features_array = scaler.transform(features_array)
             
-            # Make prediction and get confidence
-            prediction = model.predict(features_array)[0]
+            # Make prediction and get confidence. Use subprocess predictor if model
+            # artifacts cannot be loaded in-process (prevents C-extension crashes).
+            prediction = None
+            confidence = None
             try:
-                probabilities = model.predict_proba(features_array)[0]
-                confidence = max(probabilities) * 100
-            except AttributeError:
-                confidence = 95.0
+                if model is None:
+                    # call helper subprocess using the same Python that's running Flask
+                    import subprocess, json
+                    venv_python = sys.executable
+                    proc_input = json.dumps({'features': features}).encode()
+                    # allow longer timeout and make it configurable via env var
+                    timeout_seconds = int(os.environ.get('SUBPROCESS_PREDICT_TIMEOUT', '20'))
+                    proc = subprocess.run([venv_python, 'subprocess_predict.py'], input=proc_input, capture_output=True, timeout=timeout_seconds)
+                    out = proc.stdout.decode('utf-8', errors='ignore')
+                    err = proc.stderr.decode('utf-8', errors='ignore')
+                    if proc.returncode != 0:
+                        print(f"Subprocess predictor failed (rc={proc.returncode}): {err}")
+                        raise RuntimeError(f"Subprocess predictor returned non-zero exit code: {proc.returncode}")
+                    try:
+                        result = json.loads(out)
+                        if 'error' in result:
+                            raise RuntimeError(result['error'])
+                        prediction = int(result.get('prediction'))
+                        confidence = float(result.get('confidence', 95.0))
+                    except Exception as e:
+                        print(f"Error parsing subprocess output. stdout={out} stderr={err}")
+                        raise
+                else:
+                    prediction = model.predict(features_array)[0]
+                    try:
+                        probabilities = model.predict_proba(features_array)[0]
+                        confidence = max(probabilities) * 100
+                    except Exception:
+                        confidence = 95.0
+            except Exception as e:
+                print(f"Prediction error (subprocess/in-process): {e}")
+                flash('Error making prediction: model unavailable or processing error.', 'error')
+                return render_template('predict.html', feature_names=feature_names or [])
             
             result = ATTACK_TYPES.get(prediction, 'Unknown')
             
@@ -360,13 +416,15 @@ def predict():
             # Enhanced ATR for high confidence threats
             if confidence > 80.0:
                 try:
-                    threat_context = enhanced_atr_engine.analyze_threat(
+                    # Use lazy ATR engine instance
+                    atr = get_enhanced_atr_engine()
+                    threat_context = atr.analyze_threat(
                         threat_type=result,
                         confidence=confidence,
                         source_ip=request.remote_addr or 'unknown',
                         features=feature_dict
                     )
-                    enhanced_atr_engine.respond_to_threat(threat_context)
+                    atr.respond_to_threat(threat_context)
                 except Exception as atr_error:
                     print(f"Enhanced ATR error: {atr_error}")
             
@@ -467,7 +525,8 @@ def atr_dashboard():
         return redirect(url_for('login', next=request.url))
     
     try:
-        dashboard_data = enhanced_atr_engine.get_dashboard_data()
+        atr = get_enhanced_atr_engine()
+        dashboard_data = atr.get_dashboard_data()
         return render_template('atr_dashboard.html', dashboard_data=dashboard_data)
     except Exception as e:
         print(f"ATR Dashboard error: {e}")
@@ -481,7 +540,8 @@ def get_atr_dashboard_data():
         return jsonify({'error': 'Authentication required'}), 401
     
     try:
-        data = enhanced_atr_engine.get_dashboard_data()
+        atr = get_enhanced_atr_engine()
+        data = atr.get_dashboard_data()
         return jsonify(data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -549,7 +609,8 @@ def get_incident_details(incident_id):
         return jsonify({'error': 'Authentication required'}), 401
         
     try:
-        details = enhanced_atr_engine.get_incident_details(incident_id)
+        atr = get_enhanced_atr_engine()
+        details = atr.get_incident_details(incident_id)
         if details:
             return jsonify(details)
         else:
@@ -561,50 +622,76 @@ if __name__ == '__main__':
     init_db()
     # Start background thread for live packet capture and prediction
     def live_prediction_background():
+        try:
+            from live_packet_features import LivePacketFeatureExtractor, FEATURE_NAMES
+        except Exception as e:
+            print(f'Live packet feature extractor not available: {e}')
+            return
         extractor = LivePacketFeatureExtractor(interface='Wi-Fi')
         while True:
             try:
                 features_list = extractor.capture_and_extract(packet_limit=1)
                 for features_dict in features_list:
-                    processed_features = []
-                    for name in FEATURE_NAMES:
-                        value = features_dict.get(name, 0)
-                        # Encode categorical features if encoder exists
-                        if label_encoders and name in label_encoders:
+                    try:
+                        processed_features = []
+                        for name in FEATURE_NAMES:
+                            value = features_dict.get(name, 0)
+                            # Encode categorical features if encoder exists
+                            if label_encoders and name in label_encoders:
+                                try:
+                                    value = label_encoders[name].transform([value])[0]
+                                except Exception:
+                                    value = 0
+                            processed_features.append(float(value))
+                        features_array = np.array(processed_features).reshape(1, -1)
+                        # Apply scaling if available
+                        if scaler is not None:
+                            features_array = scaler.transform(features_array)
+                        # Make prediction and get confidence only if model loaded
+                        if model is not None:
+                            prediction = model.predict(features_array)[0]
                             try:
-                                value = label_encoders[name].transform([value])[0]
+                                probabilities = model.predict_proba(features_array)[0]
+                                confidence = max(probabilities) * 100
                             except Exception:
-                                value = 0
-                        processed_features.append(float(value))
-                    features_array = np.array(processed_features).reshape(1, -1)
-                    # Apply scaling if available
-                    if scaler is not None:
-                        features_array = scaler.transform(features_array)
-                    # Make prediction and get confidence
-                    if model is not None:
-                        prediction = model.predict(features_array)[0]
-                        try:
-                            probabilities = model.predict_proba(features_array)[0]
-                            confidence = max(probabilities) * 100
-                        except Exception:
-                            confidence = 95.0
-                        result = ATTACK_TYPES.get(prediction, 'Unknown')
-                        # Insert into DB as 'system' user (user_id=1 for demo/admin)
-                        try:
-                            conn = sqlite3.connect('users.db', timeout=10)
-                            c = conn.cursor()
-                            c.execute("INSERT INTO predictions (user_id, prediction_result, confidence, input_features) VALUES (?, ?, ?, ?)",
-                                     (1, result, confidence, str(features_dict)))
-                            conn.commit()
-                        except Exception as e:
-                            print(f"Live prediction DB error: {e}")
-                        finally:
-                            if 'conn' in locals():
-                                conn.close()
+                                confidence = 95.0
+                            result = ATTACK_TYPES.get(prediction, 'Unknown')
+                            # Insert into DB as 'system' user (user_id=1 for demo/admin)
+                            try:
+                                conn = sqlite3.connect('users.db', timeout=10)
+                                c = conn.cursor()
+                                c.execute("INSERT INTO predictions (user_id, prediction_result, confidence, input_features) VALUES (?, ?, ?, ?)",
+                                         (1, result, confidence, str(features_dict)))
+                                conn.commit()
+                            except Exception as e:
+                                print(f"Live prediction DB error: {e}")
+                            finally:
+                                if 'conn' in locals():
+                                    conn.close()
+                    except RuntimeError as e:
+                        # pyshark/asyncio may raise when running in a background thread
+                        print(f"Live prediction processing error (runtime): {e}")
+                        continue
+                    except Exception as e:
+                        print(f"Live prediction processing error: {e}")
+                        continue
             except Exception as e:
                 print(f"Live prediction error: {e}")
             time.sleep(5)  # Adjust interval as needed
 
+    # Do not load artifacts at startup to avoid C-extension/unpickle crashes.
+    # Artifacts will be loaded lazily on-demand by `load_model_artifacts()`.
+
     live_thread = threading.Thread(target=live_prediction_background, daemon=True)
-    live_thread.start()
-    app.run(debug=True)
+    # Only start live capture if explicitly enabled to avoid pyshark/event-loop issues
+    if os.environ.get('ENABLE_LIVE_CAPTURE', 'false').lower() == 'true':
+        # ensure model artifacts are loaded before starting live capture
+        if model is None:
+            print('Live capture not started because model artifacts failed to load')
+        else:
+            live_thread.start()
+    else:
+        print('Live capture disabled. Set ENABLE_LIVE_CAPTURE=true to enable.')
+    # Allow controlling debug/reloader via environment to avoid auto-restart
+    debug_mode = os.environ.get('FLASK_DEBUG', '0').lower() in ('1', 'true')
+    app.run(debug=debug_mode, use_reloader=debug_mode)
