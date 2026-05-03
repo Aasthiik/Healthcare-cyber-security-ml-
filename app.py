@@ -984,6 +984,103 @@ def advanced_analytics_dashboard():
     
     return render_template('analytics_advanced.html', username=session.get('username'))
 
+@app.route('/threats')
+def threats_page():
+    """Display threats page"""
+    if not requires_login():
+        return redirect(url_for('login'))
+    
+    return render_template('threats.html', username=session.get('username'))
+
+@app.route('/api/model-status')
+def get_model_status():
+    """Get ML model status and information"""
+    try:
+        status = {
+            'model_loaded': os.path.exists('model.sav'),
+            'scaler_loaded': os.path.exists('scaler.sav'),
+            'feature_names_loaded': os.path.exists('feature_names.sav'),
+            'compliance_enabled': compliance_available,
+            'threat_engine_ready': threat_engine is not None,
+            'atr_engine_ready': get_enhanced_atr_engine() is not None,
+            'timestamp': datetime.now().isoformat()
+        }
+        return jsonify({'success': True, 'status': status}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/predict', methods=['POST'])
+def predict_api():
+    """API endpoint for making predictions"""
+    try:
+        data = request.get_json()
+        
+        # Verify required fields
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Load model and scaler
+        if not os.path.exists('model.sav') or not os.path.exists('scaler.sav'):
+            return jsonify({'error': 'Model files not found'}), 500
+        
+        model = joblib.load('model.sav')
+        scaler = joblib.load('scaler.sav')
+        feature_names = joblib.load('feature_names.sav')
+        
+        # Expected features: ['duration', 'protocol_type', 'service', 'flag', 'src_bytes', 
+        # 'dst_bytes', 'land', 'wrong_fragment', 'urgent', 'hot', 'num_failed_logins', 
+        # 'logged_in', 'device_type', 'protocol', 'user_role', 'department']
+        
+        # Extract features from input in the correct order
+        features = []
+        for feat in feature_names:
+            if feat in data:
+                val = data[feat]
+                # Convert string values to numeric if needed
+                if isinstance(val, str):
+                    try:
+                        val = float(val)
+                    except:
+                        val = 0.0
+                features.append(float(val))
+            else:
+                features.append(0.0)
+        
+        # Scale features
+        features_array = np.array([features])
+        features_scaled = scaler.transform(features_array)
+        
+        # Make prediction
+        prediction = model.predict(features_scaled)[0]
+        probabilities = model.predict_proba(features_scaled)[0]
+        
+        # Map prediction to attack type
+        attack_type = ATTACK_TYPES.get(int(prediction), 'Unknown')
+        
+        result = {
+            'success': True,
+            'prediction': int(prediction),
+            'attack_type': attack_type,
+            'confidence': float(max(probabilities)) * 100,
+            'probabilities': {ATTACK_TYPES[i]: float(p) * 100 for i, p in enumerate(probabilities)},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Log prediction if compliance available
+        if compliance_available and audit_logger:
+            try:
+                audit_logger.log_compliance_event(
+                    event_type='prediction',
+                    description=f'Prediction: {attack_type} ({max(probabilities):.2%})',
+                    severity='info'
+                )
+            except:
+                pass
+        
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     init_db()
     # Start background thread for live packet capture and prediction
