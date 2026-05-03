@@ -11,6 +11,17 @@ import time
 # Import live packet features lazily inside the background thread to avoid
 # importing `pyshark` at module import time (which can block or fail).
 from app.security.threat_response import threat_engine
+
+# Import compliance modules for HIPAA/GDPR support
+try:
+    from app.security.compliance import (
+        AuditLogger, DataEncryption, DataPrivacy, ComplianceMonitor
+    )
+    compliance_available = True
+except Exception as e:
+    print(f"Warning: Compliance module not available: {e}")
+    compliance_available = False
+
 # Lazy import/initialization for Enhanced ATR Engine to avoid import-time side effects
 _enhanced_atr_engine = None
 def get_enhanced_atr_engine():
@@ -44,6 +55,21 @@ app = Flask(__name__)
 # Security: Use consistent secret key to prevent session issues
 app.secret_key = 'healthcare-cybersecurity-ml-secure-key-2024'
 app.permanent_session_lifetime = 3600  # 1 hour
+
+# Initialize compliance modules for HIPAA/GDPR
+if compliance_available:
+    try:
+        encryption = DataEncryption()
+        audit_logger = AuditLogger()
+        compliance_monitor = ComplianceMonitor()
+        print("✅ Compliance modules initialized successfully")
+    except Exception as e:
+        print(f"Warning: Failed to initialize compliance modules: {e}")
+        compliance_available = False
+else:
+    encryption = None
+    audit_logger = None
+    compliance_monitor = None
 
 # Database setup
 def init_db():
@@ -127,15 +153,37 @@ def load_model_artifacts():
         except Exception:
             pass
 
-        model = joblib.load('model.sav')
+        # Try loading enhanced models first
         try:
-            feature_names = joblib.load('feature_names.sav')
-        except Exception:
-            feature_names = []
+            model = joblib.load('model_ensemble.sav')
+            print("✅ Loaded enhanced ensemble model")
+        except:
+            model = joblib.load('model.sav')
+            print("ℹ️  Loaded original model (enhanced model not available yet)")
+        
         try:
-            scaler = joblib.load('scaler.sav')
-        except Exception:
-            scaler = None
+            feature_names = joblib.load('feature_names_ensemble.sav')
+        except:
+            try:
+                feature_names = joblib.load('feature_names.sav')
+            except Exception:
+                feature_names = []
+        try:
+            scaler = joblib.load('scaler_ensemble.sav')
+        except:
+            try:
+                scaler = joblib.load('scaler.sav')
+            except Exception:
+                scaler = None
+        
+        # Load anomaly detectors if available
+        try:
+            global anomaly_ensemble
+            anomaly_ensemble = joblib.load('anomaly_detectors.sav')
+            print("✅ Loaded anomaly detection ensemble")
+        except:
+            anomaly_ensemble = None
+        
         try:
             label_encoders = joblib.load('label_encoders.sav')
         except Exception:
@@ -238,6 +286,21 @@ def login():
                 session['logged_in'] = True
                 session.permanent = True
                 
+                # Log successful login
+                if compliance_available and audit_logger:
+                    try:
+                        audit_logger.log_action(
+                            user_id=user[0],
+                            username=user[1],
+                            action='LOGIN',
+                            resource='authentication',
+                            details={'method': 'password', 'result': 'success'},
+                            ip_address=request.remote_addr,
+                            status='SUCCESS'
+                        )
+                    except Exception as e:
+                        print(f"Error logging login: {e}")
+                
                 flash('Login successful!', 'success')
                 
                 # Check if user was trying to access a specific page
@@ -246,6 +309,21 @@ def login():
                     return redirect(next_page)
                 return redirect(url_for('dashboard'))
             else:
+                # Log failed login
+                if compliance_available and audit_logger:
+                    try:
+                        audit_logger.log_action(
+                            user_id=None,
+                            username=username,
+                            action='LOGIN',
+                            resource='authentication',
+                            details={'method': 'password', 'result': 'failed'},
+                            ip_address=request.remote_addr,
+                            status='FAILURE'
+                        )
+                    except Exception as e:
+                        print(f"Error logging failed login: {e}")
+                
                 flash('Invalid username or password!', 'error')
         except sqlite3.Error as e:
             print(f"Database error in login: {e}")
@@ -296,6 +374,18 @@ def predict():
     
     if request.method == 'POST':
         try:
+            # Log data access for compliance
+            if compliance_available and audit_logger:
+                try:
+                    audit_logger.log_data_access(
+                        user_id=session.get('user_id'),
+                        data_type='network_traffic',
+                        access_type='prediction_request',
+                        record_count=1
+                    )
+                except Exception as e:
+                    print(f"Error logging data access: {e}")
+            
             # Ensure model artifacts are loaded (lazy)
             if model is None:
                 load_model_artifacts()
@@ -351,6 +441,17 @@ def predict():
             if scaler is not None:
                 features_array = scaler.transform(features_array)
             
+            # Check for anomalies
+            anomaly_flag = False
+            if 'anomaly_ensemble' in globals() and anomaly_ensemble is not None:
+                try:
+                    anomalies, votes = anomaly_ensemble.detect_anomalies(features_array)
+                    anomaly_flag = anomalies[0]
+                    if anomaly_flag:
+                        print(f"⚠️  Anomaly detected! Votes: {votes}")
+                except Exception as e:
+                    print(f"Error in anomaly detection: {e}")
+            
             # Make prediction and get confidence. Use subprocess predictor if model
             # artifacts cannot be loaded in-process (prevents C-extension crashes).
             prediction = None
@@ -392,6 +493,24 @@ def predict():
             
             result = ATTACK_TYPES.get(prediction, 'Unknown')
             
+            # Log prediction with compliance module
+            if compliance_available and audit_logger:
+                try:
+                    audit_logger.log_action(
+                        user_id=session.get('user_id'),
+                        username=session.get('username'),
+                        action='PREDICTION',
+                        resource='threat_detection',
+                        details={
+                            'prediction': result,
+                            'confidence': float(confidence),
+                            'anomaly_detected': anomaly_flag
+                        },
+                        ip_address=request.remote_addr
+                    )
+                except Exception as e:
+                    print(f"Error logging prediction: {e}")
+            
             # Save to database with proper error handling
             try:
                 conn = sqlite3.connect('users.db', timeout=10)
@@ -432,6 +551,7 @@ def predict():
                                  prediction=result, 
                                  confidence=round(confidence, 2),
                                  features=feature_dict,
+                                 anomaly_detected=anomaly_flag,
                                  atr=atr_record)
         
         except Exception as e:
@@ -617,6 +737,102 @@ def get_incident_details(incident_id):
             return jsonify({'error': 'Incident not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# ============================================================================
+# COMPLIANCE & AUDIT ROUTES
+# ============================================================================
+
+@app.route('/compliance/report')
+def compliance_report():
+    """Generate HIPAA/GDPR compliance report"""
+    if not requires_login():
+        flash('Please login to view compliance report.', 'warning')
+        return redirect(url_for('login', next=request.url))
+    
+    # Check if user is admin (user_id 4 is admin, or username is 'admin')
+    if session.get('user_id') != 4 and session.get('username') != 'admin':
+        flash('Compliance reports are available to administrators only.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        if not compliance_available or not audit_logger:
+            flash('Compliance module not available.', 'error')
+            return redirect(url_for('dashboard'))
+        
+        report = audit_logger.generate_compliance_report()
+        return jsonify(report)
+    except Exception as e:
+        print(f"Compliance report error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/compliance/audit-trail')
+def audit_trail():
+    """Get audit trail for compliance"""
+    if not requires_login():
+        flash('Please login to view audit trail.', 'warning')
+        return redirect(url_for('login', next=request.url))
+    
+    # Check if user is admin
+    if session.get('user_id') != 4 and session.get('username') != 'admin':
+        flash('Audit trails are available to administrators only.', 'warning')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        if not compliance_available or not audit_logger:
+            flash('Compliance module not available.', 'error')
+            return redirect(url_for('dashboard'))
+        
+        hours = request.args.get('hours', 24, type=int)
+        trails = audit_logger.get_audit_trail(hours=hours)
+        
+        return render_template('audit_trail.html', 
+                             audit_trails=trails,
+                             hours=hours,
+                             username=session.get('username'))
+    except Exception as e:
+        print(f"Audit trail error: {e}")
+        flash(f'Error loading audit trail: {str(e)}', 'error')
+        return redirect(url_for('dashboard'))
+
+@app.route('/api/compliance/audit-trail')
+def api_audit_trail():
+    """JSON API for audit trail"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    if session.get('user_id') != 4 and session.get('username') != 'admin':
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    try:
+        if not compliance_available or not audit_logger:
+            return jsonify({'error': 'Compliance module not available'}), 500
+        
+        hours = request.args.get('hours', 24, type=int)
+        trails = audit_logger.get_audit_trail(hours=hours)
+        
+        return jsonify({
+            'count': len(trails) if trails else 0,
+            'audit_trails': [dict(trail) if hasattr(trail, 'keys') else trail for trail in (trails or [])]
+        })
+    except Exception as e:
+        print(f"API audit trail error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/compliance/status')
+def compliance_status():
+    """Check compliance module status"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    status = {
+        'compliance_enabled': compliance_available,
+        'encryption_enabled': encryption is not None,
+        'audit_logging_enabled': audit_logger is not None,
+        'compliance_monitor_enabled': compliance_monitor is not None,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    return jsonify(status)
 
 if __name__ == '__main__':
     init_db()
