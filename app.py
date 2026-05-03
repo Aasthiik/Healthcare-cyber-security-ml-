@@ -834,6 +834,156 @@ def compliance_status():
     
     return jsonify(status)
 
+# ============== ADVANCED ANALYTICS ENDPOINTS (100% ALIGNMENT) ==============
+
+@app.route('/api/analytics/threats')
+def get_threat_analytics():
+    """Get comprehensive threat analytics"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        hours = request.args.get('hours', 24, type=int)
+        stats = analytics_engine.get_threat_statistics(hours)
+        
+        return jsonify({
+            'success': True,
+            'data': stats,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Analytics error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/models')
+def get_model_analytics():
+    """Get ML model performance analytics"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        hours = request.args.get('hours', 24, type=int)
+        models = analytics_engine.get_model_performance(hours)
+        
+        return jsonify({
+            'success': True,
+            'models': models,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Model analytics error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/threats/timeline')
+def get_threat_timeline():
+    """Get threat detection timeline"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        hours = request.args.get('hours', 24, type=int)
+        limit = request.args.get('limit', 100, type=int)
+        events = analytics_engine.get_threat_timeline(hours, limit)
+        
+        return jsonify({
+            'success': True,
+            'events': events,
+            'count': len(events),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Timeline error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/threats/trends')
+def get_threat_trends():
+    """Get threat trends over time"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        days = request.args.get('days', 7, type=int)
+        trends = analytics_engine.get_threat_trends(days)
+        
+        return jsonify({
+            'success': True,
+            'trends': trends,
+            'period_days': days,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Trends error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/anomalies')
+def get_anomaly_analytics():
+    """Get anomaly detection analysis"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        hours = request.args.get('hours', 24, type=int)
+        anomalies = analytics_engine.get_anomaly_analysis(hours)
+        
+        return jsonify({
+            'success': True,
+            'anomalies': anomalies,
+            'count': len(anomalies),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Anomaly analysis error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/report')
+def get_security_report():
+    """Generate comprehensive security report"""
+    if not requires_login():
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    # Admin only
+    if session.get('user_id') != 4 and session.get('username') != 'admin':
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    try:
+        from app.security.analytics import get_analytics
+        analytics_engine = get_analytics()
+        
+        hours = request.args.get('hours', 24, type=int)
+        report = analytics_engine.generate_security_report(hours)
+        
+        return jsonify({
+            'success': True,
+            'report': report,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Report generation error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/analytics-advanced')
+def advanced_analytics_dashboard():
+    """Render advanced analytics dashboard"""
+    if not requires_login():
+        return redirect(url_for('login'))
+    
+    return render_template('analytics_advanced.html', username=session.get('username'))
+
 if __name__ == '__main__':
     init_db()
     # Start background thread for live packet capture and prediction

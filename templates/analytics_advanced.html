@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Analytics - Healthcare Cybersecurity{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>🔍 Advanced Analytics Dashboard</h1>
+            <p class="text-muted">Real-time threat analytics, model performance, and security insights</p>
+        </div>
+    </div>
+
+    <!-- Time Period Selector -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="updatePeriod(24)">Last 24h</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updatePeriod(7)">Last 7d</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updatePeriod(30)">Last 30d</button>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-success" onclick="generateReport()">📊 Generate Report</button>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h6 class="card-title text-danger">🚨 Total Threats</h6>
+                    <h3 id="total-threats">--</h3>
+                    <small class="text-muted" id="avg-severity">Avg Severity: --</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="card-title text-warning">⚠️ Critical Alerts</h6>
+                    <h3 id="critical-count">--</h3>
+                    <small class="text-muted" id="critical-percent">% of total: --</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body">
+                    <h6 class="card-title text-info">🌐 Unique Sources</h6>
+                    <h3 id="unique-sources">--</h3>
+                    <small class="text-muted" id="avg-confidence">Avg Confidence: --</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="card-title text-success">✅ Model Accuracy</h6>
+                    <h3 id="model-accuracy">--</h3>
+                    <small class="text-muted" id="model-f1">F1-Score: --</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Threats by Type</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="threatsTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Severity Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trends Row -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">📈 Threat Trends (7 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendsChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Source IPs -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">🔴 Top Source IPs</h6>
+                </div>
+                <div class="card-body">
+                    <div id="top-ips" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Performance -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">🤖 Model Performance</h6>
+                </div>
+                <div class="card-body">
+                    <div id="model-performance" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomaly Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">🔍 Anomaly Detection Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div id="anomaly-analysis">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Threats Timeline -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">📋 Recent Threat Timeline</h6>
+                </div>
+                <div class="card-body">
+                    <div id="threat-timeline" style="max-height: 500px; overflow-y: auto;">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+let currentHours = 24;
+let charts = {};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadAllAnalytics();
+    setInterval(loadAllAnalytics, 60000); // Refresh every minute
+});
+
+function updatePeriod(hours) {
+    currentHours = hours;
+    loadAllAnalytics();
+}
+
+async function loadAllAnalytics() {
+    console.log('Loading analytics for last', currentHours, 'hours...');
+    
+    try {
+        await Promise.all([
+            loadThreatStatistics(),
+            loadModelPerformance(),
+            loadThreatTrends(),
+            loadAnomalyAnalysis(),
+            loadThreatTimeline()
+        ]);
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+    }
+}
+
+async function loadThreatStatistics() {
+    const response = await fetch(`/api/analytics/threats?hours=${currentHours}`);
+    const data = await response.json();
+    
+    if (!data.success) return;
+    
+    const stats = data.data;
+    
+    // Update key metrics
+    const totalEvents = stats.total_stats.total_events || 0;
+    const avgConfidence = (stats.total_stats.avg_confidence || 0).toFixed(2);
+    const uniqueSources = stats.total_stats.unique_sources || 0;
+    const maxSeverity = stats.total_stats.max_severity || 0;
+    
+    document.getElementById('total-threats').textContent = totalEvents;
+    document.getElementById('avg-severity').textContent = `Avg Severity: ${(maxSeverity).toFixed(1)}/5`;
+    document.getElementById('unique-sources').textContent = uniqueSources;
+    document.getElementById('avg-confidence').textContent = `Avg Confidence: ${avgConfidence}%`;
+    
+    // Update threats by type chart
+    if (stats.threats_by_type && stats.threats_by_type.length > 0) {
+        const labels = stats.threats_by_type.map(t => t.threat_type);
+        const counts = stats.threats_by_type.map(t => t.count);
+        const severities = stats.threats_by_type.map(t => t.avg_severity);
+        
+        updateChart('threatsTypeChart', {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Count',
+                        data: counts,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Avg Severity',
+                        data: severities,
+                        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left' },
+                    y1: { type: 'linear', display: true, position: 'right', max: 5 }
+                }
+            }
+        });
+    }
+    
+    // Update severity distribution chart
+    if (stats.threats_by_severity && stats.threats_by_severity.length > 0) {
+        const severityLabels = stats.threats_by_severity.map(s => `Level ${s.severity}`);
+        const severityCounts = stats.threats_by_severity.map(s => s.count);
+        const colors = ['#28a745', '#ffc107', '#fd7e14', '#dc3545', '#721c24'];
+        
+        updateChart('severityChart', {
+            type: 'doughnut',
+            data: {
+                labels: severityLabels,
+                datasets: [{
+                    data: severityCounts,
+                    backgroundColor: colors.slice(0, severityLabels.length)
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+    
+    // Update top source IPs
+    if (stats.top_source_ips && stats.top_source_ips.length > 0) {
+        let html = '<table class="table table-sm"><thead><tr><th>Source IP</th><th>Count</th><th>Avg Severity</th></tr></thead><tbody>';
+        stats.top_source_ips.forEach(ip => {
+            html += `<tr><td><code>${ip.source_ip}</code></td><td>${ip.count}</td><td>${ip.avg_severity.toFixed(1)}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        document.getElementById('top-ips').innerHTML = html;
+    }
+}
+
+async function loadModelPerformance() {
+    const response = await fetch(`/api/analytics/models?hours=${currentHours}`);
+    const data = await response.json();
+    
+    if (!data.success || !data.models) return;
+    
+    const models = data.models;
+    
+    if (models.length > 0) {
+        const bestModel = models[0];
+        document.getElementById('model-accuracy').textContent = (bestModel.avg_accuracy * 100).toFixed(1) + '%';
+        document.getElementById('model-f1').textContent = `F1: ${(bestModel.avg_f1).toFixed(3)}`;
+    }
+    
+    let html = '<table class="table table-sm"><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>Inference</th></tr></thead><tbody>';
+    models.forEach(m => {
+        html += `<tr><td>${m.model_name}</td><td>${(m.avg_accuracy * 100).toFixed(1)}%</td><td>${(m.avg_precision * 100).toFixed(1)}%</td><td>${(m.avg_recall * 100).toFixed(1)}%</td><td>${m.avg_f1.toFixed(3)}</td><td>${m.avg_inference_time.toFixed(1)}ms</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('model-performance').innerHTML = html;
+}
+
+async function loadThreatTrends() {
+    const response = await fetch(`/api/analytics/threats/trends?days=7`);
+    const data = await response.json();
+    
+    if (!data.success || !data.trends) return;
+    
+    const trends = data.trends;
+    const labels = trends.map(t => t.date);
+    const counts = trends.map(t => t.daily_count);
+    const severities = trends.map(t => t.avg_severity);
+    
+    updateChart('trendsChart', {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Daily Threats',
+                    data: counts,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Avg Severity',
+                    data: severities,
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                    tension: 0.1,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { type: 'linear', display: true, position: 'left' },
+                y1: { type: 'linear', display: true, position: 'right', max: 5 }
+            }
+        }
+    });
+}
+
+async function loadAnomalyAnalysis() {
+    const response = await fetch(`/api/analytics/anomalies?hours=${currentHours}`);
+    const data = await response.json();
+    
+    if (!data.success || !data.anomalies) return;
+    
+    const anomalies = data.anomalies;
+    let html = '<table class="table table-sm"><thead><tr><th>Threat Type</th><th>Avg Anomaly Score</th><th>Max Score</th><th>Count</th></tr></thead><tbody>';
+    anomalies.forEach(a => {
+        html += `<tr><td>${a.threat_type}</td><td>${(a.avg_anomaly_score * 100).toFixed(1)}%</td><td>${(a.max_anomaly_score * 100).toFixed(1)}%</td><td>${a.count}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('anomaly-analysis').innerHTML = html;
+}
+
+async function loadThreatTimeline() {
+    const response = await fetch(`/api/analytics/threats/timeline?hours=${currentHours}&limit=20`);
+    const data = await response.json();
+    
+    if (!data.success || !data.events) return;
+    
+    const events = data.events;
+    let html = '<div class="timeline">';
+    events.forEach(event => {
+        const severity = event.severity || 0;
+        const severityColor = severity >= 4 ? 'danger' : severity >= 3 ? 'warning' : 'info';
+        html += `
+            <div class="timeline-item border-left border-${severityColor} ps-3 mb-3">
+                <small class="text-muted">${new Date(event.timestamp).toLocaleString()}</small>
+                <p class="mb-1">
+                    <strong>${event.threat_type}</strong>
+                    <span class="badge bg-${severityColor}">Level ${severity}</span>
+                </p>
+                <small class="text-muted">
+                    ${event.source_ip || 'Unknown'} → Confidence: ${(event.confidence_score * 100).toFixed(1)}%
+                </small>
+            </div>
+        `;
+    });
+    html += '</div>';
+    document.getElementById('threat-timeline').innerHTML = html;
+}
+
+function updateChart(chartId, config) {
+    const ctx = document.getElementById(chartId);
+    if (!ctx) return;
+    
+    if (charts[chartId]) {
+        charts[chartId].destroy();
+    }
+    
+    charts[chartId] = new Chart(ctx, config);
+}
+
+async function generateReport() {
+    try {
+        const response = await fetch('/api/analytics/report?hours=24');
+        const data = await response.json();
+        
+        if (data.success) {
+            const report = data.report;
+            const content = JSON.stringify(report, null, 2);
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security-report-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            alert('Report generated and downloaded successfully!');
+        }
+    } catch (error) {
+        console.error('Report generation error:', error);
+        alert('Error generating report');
+    }
+}
+</script>
+
+<style>
+.timeline-item {
+    padding-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
