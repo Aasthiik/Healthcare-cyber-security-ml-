@@ -40,16 +40,6 @@ ATTACK_TYPES = {
     3: 'R2L Attack',
     4: 'U2R Attack'
 }
-import numpy as np
-import joblib
-import sqlite3
-from datetime import datetime
-import os
-from werkzeug.security import generate_password_hash, check_password_hash
-import threading
-import time
-from app.security.threat_response import threat_engine
-
 
 app = Flask(__name__)
 # Security: Use consistent secret key to prevent session issues
@@ -204,15 +194,6 @@ def requires_login():
 
 # Defer loading of ML artifacts until runtime to avoid import-time pickle errors
 print('Model artifact loading deferred until runtime')
-
-# Attack types mapping - using threat engine constants
-ATTACK_TYPES = {
-    0: 'Normal',
-    1: 'DoS Attack',
-    2: 'Probe Attack',
-    3: 'R2L Attack',
-    4: 'U2R Attack'
-}
 
 @app.route('/')
 def index():
@@ -461,10 +442,12 @@ def predict():
                     # call helper subprocess using the same Python that's running Flask
                     import subprocess, json
                     venv_python = sys.executable
+                    _app_dir = os.path.dirname(os.path.abspath(__file__))
+                    _subprocess_script = os.path.join(_app_dir, 'subprocess_predict.py')
                     proc_input = json.dumps({'features': features}).encode()
                     # allow longer timeout and make it configurable via env var
                     timeout_seconds = int(os.environ.get('SUBPROCESS_PREDICT_TIMEOUT', '20'))
-                    proc = subprocess.run([venv_python, 'subprocess_predict.py'], input=proc_input, capture_output=True, timeout=timeout_seconds)
+                    proc = subprocess.run([venv_python, _subprocess_script], input=proc_input, capture_output=True, timeout=timeout_seconds, cwd=_app_dir)
                     out = proc.stdout.decode('utf-8', errors='ignore')
                     err = proc.stderr.decode('utf-8', errors='ignore')
                     if proc.returncode != 0:
@@ -996,7 +979,7 @@ def threats_page():
 def get_model_status():
     """Get ML model status and information"""
     try:
-        status = {
+        status_dict = {
             'model_loaded': os.path.exists('model.sav'),
             'scaler_loaded': os.path.exists('scaler.sav'),
             'feature_names_loaded': os.path.exists('feature_names.sav'),
@@ -1005,7 +988,20 @@ def get_model_status():
             'atr_engine_ready': get_enhanced_atr_engine() is not None,
             'timestamp': datetime.now().isoformat()
         }
-        return jsonify({'success': True, 'status': status}), 200
+        
+        # Load additional model info if available
+        try:
+            model = joblib.load('model.sav')
+            feature_names = joblib.load('feature_names.sav')
+            status_dict['model_type'] = type(model).__name__
+            status_dict['n_classes'] = len(ATTACK_TYPES)
+            status_dict['features'] = feature_names
+            if hasattr(model, 'n_estimators'):
+                status_dict['n_estimators'] = model.n_estimators
+        except:
+            pass
+        
+        return jsonify({'success': True, 'status': status_dict}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1061,8 +1057,8 @@ def predict_api():
             'success': True,
             'prediction': int(prediction),
             'attack_type': attack_type,
-            'confidence': float(max(probabilities)) * 100,
-            'probabilities': {ATTACK_TYPES[i]: float(p) * 100 for i, p in enumerate(probabilities)},
+            'confidence': float(max(probabilities)),
+            'probabilities': {ATTACK_TYPES[i]: float(p) for i, p in enumerate(probabilities)},
             'timestamp': datetime.now().isoformat()
         }
         
