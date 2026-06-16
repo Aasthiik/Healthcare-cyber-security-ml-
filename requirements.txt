@@ -8,8 +8,8 @@ scikit-learn>=1.6
 numpy>=1.26
 joblib>=1.3
 pandas>=2.0
-xgboost>=2.0  # Gradient boosting
-lightgbm>=4.0  # Light gradient boosting
+xgboost>=2.0; python_version < "3.13"  # Gradient boosting
+lightgbm>=4.0; python_version < "3.13"  # Light gradient boosting
 
 # Deep Learning Libraries
 # Guarded by Python version because TensorFlow wheels are not available on newer Python versions (e.g., 3.13/3.14)
@@ -33,4 +33,4 @@ itsdangerous>=2.1
 click>=8.1
 
 # System Dependencies
-# gunicorn>=21.2  # For production deployment (Linux only)
+gunicorn>=21.2  # For production deployment (Linux only)
