@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: healthcare-cybersecurity-ml
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.render.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: ENABLE_LIVE_CAPTURE
+        value: "false"
+      - key: FORCE_SUBPROCESS_PREDICT
+        value: "0"

@@ -12,8 +12,9 @@ xgboost>=2.0  # Gradient boosting
 lightgbm>=4.0  # Light gradient boosting
 
 # Deep Learning Libraries
-tensorflow>=2.13
-keras>=2.13
+# Guarded by Python version because TensorFlow wheels are not available on newer Python versions (e.g., 3.13/3.14)
+tensorflow>=2.13; python_version < "3.12"
+keras>=2.13; python_version < "3.12"
 
 # Privacy & Security
 cryptography>=41.0  # Encryption

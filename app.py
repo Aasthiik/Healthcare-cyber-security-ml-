@@ -8,6 +8,7 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import threading
 import time
+import logging
 # Import live packet features lazily inside the background thread to avoid
 # importing `pyshark` at module import time (which can block or fail).
 from app.security.threat_response import threat_engine
@@ -31,6 +32,8 @@ def get_enhanced_atr_engine():
         _enhanced_atr_engine = EnhancedThreatResponseEngine()
     return _enhanced_atr_engine
 import sys
+
+logger = logging.getLogger(__name__)
 
 # Attack types mapping - using threat engine constants
 ATTACK_TYPES = {
@@ -118,6 +121,13 @@ def init_db():
     
     conn.commit()
     conn.close()
+
+# Ensure database schema exists when running under WSGI servers
+# (e.g., gunicorn on Render), where __main__ block is not executed.
+try:
+    init_db()
+except Exception as e:
+    print(f"Database initialization warning: {e}")
 
 # Load the trained model and preprocessing components
 model = None
